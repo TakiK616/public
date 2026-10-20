@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>レンチン時間計算</title>
+<style>
+:root{--bg:#fff7ed;--card:#fff;--text:#2b2118;--sub:#7a6a5c;--accent:#ea580c;--line:#f0dfcf;--chip:#fde6d2;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1511;--card:#2a211b;--text:#f6ece2;--sub:#b3a090;--accent:#fb923c;--line:#3d3027;--chip:#3d2b1e}}
+:root[data-theme="dark"]{--bg:#1b1511;--card:#2a211b;--text:#f6ece2;--sub:#b3a090;--accent:#fb923c;--line:#3d3027;--chip:#3d2b1e}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;padding:16px;max-width:480px;margin:0 auto}
+h1{font-size:20px;margin:8px 0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+label{display:block;font-size:13px;color:var(--sub);margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.chip{border:0;background:var(--chip);color:var(--text);padding:10px 14px;border-radius:999px;font-size:15px}
+.chip.on{background:var(--accent);color:#fff}
+.row{display:flex;align-items:center;gap:8px}
+input{width:100%;font-size:20px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);text-align:center}
+.unit{color:var(--sub);white-space:nowrap}
+.result{text-align:center}
+.big{font-size:44px;font-weight:700;color:var(--accent);margin:4px 0}
+.small{color:var(--sub);font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+td,th{padding:8px 4px;border-bottom:1px solid var(--line);text-align:center}
+th{color:var(--sub);font-weight:500;font-size:13px}
+.wrap{overflow-x:auto}
+</style>
+</head>
+<body>
+<h1>🍱 レンチン時間計算</h1>
+
+<div class="card">
+<label>食品の袋に書いてあるワット数</label>
+<div class="chips" id="fromChips"></div>
+<div class="row"><input id="fromW" type="number" inputmode="numeric" value="500"><span class="unit">W</span></div>
+<label style="margin-top:14px">書いてある加熱時間</label>
+<div class="row">
+<input id="min" type="number" inputmode="numeric" value="3" min="0"><span class="unit">分</span>
+<input id="sec" type="number" inputmode="numeric" value="0" min="0"><span class="unit">秒</span>
+</div>
+</div>
+
+<div class="card">
+<label>自分のレンジのワット数</label>
+<div class="chips" id="toChips"></div>
+<div class="row"><input id="toW" type="number" inputmode="numeric" value="600"><span class="unit">W</span></div>
+</div>
+
+<div class="card result">
+<div class="small">加熱時間の目安</div>
+<div class="big" id="out">--</div>
+<div class="small" id="sub"></div>
+</div>
+
+<div class="card">
+<label>ワット数ごとの早見表</label>
+<div class="wrap"><table id="tbl"></table></div>
+</div>
+
+<script>
+var W=[500,600,700,800,1000];
+function $(id){return document.getElementById(id)}
+function fmt(s){s=Math.round(s);var m=Math.floor(s/60),r=s%60;return (m?m+"分":"")+(r||!m?r+"秒":"")}
+function chips(id,input){
+  var box=$(id);
+  W.forEach(function(w){
+    var b=document.createElement("button");b.className="chip";b.textContent=w+"W";
+    b.onclick=function(){$(input).value=w;calc()};box.appendChild(b);
+  });
+}
+function calc(){
+  var f=+$("fromW").value,t=+$("toW").value;
+  var s=(+$("min").value||0)*60+(+$("sec").value||0);
+  ["fromW","toW"].forEach(function(id){
+    var chipBox=$(id==="fromW"?"fromChips":"toChips");
+    Array.prototype.forEach.call(chipBox.children,function(c){c.classList.toggle("on",parseInt(c.textContent)===+$(id).value)});
+  });
+  if(!f||!t||!s){$("out").textContent="--";$("sub").textContent="";$("tbl").innerHTML="";return}
+  var r=s*f/t;
+  $("out").textContent=fmt(r);
+  $("sub").textContent="計算結果："+r.toFixed(1)+"秒（"+f+"W "+fmt(s)+" → "+t+"W）";
+  var h="<tr><th>ワット数</th><th>時間</th></tr>";
+  W.concat([1500]).forEach(function(w){h+="<tr><td>"+w+"W</td><td>"+fmt(s*f/w)+"</td></tr>"});
+  $("tbl").innerHTML=h;
+}
+chips("fromChips","fromW");chips("toChips","toW");
+["fromW","toW","min","sec"].forEach(function(id){$(id).addEventListener("input",calc)});
+calc();
+</script>
+</body>
+</html>
