@@ -36,18 +36,18 @@ th{color:var(--sub);font-weight:500;font-size:13px}
 <div class="card">
 <label>食品の袋に書いてあるワット数</label>
 <div class="chips" id="fromChips"></div>
-<div class="row"><input id="fromW" type="number" inputmode="numeric" value="500"><span class="unit">W</span></div>
+<div class="row"><input id="fromW" type="number" inputmode="numeric" value="500" min="1" max="10000"><span class="unit">W</span></div>
 <label style="margin-top:14px">書いてある加熱時間</label>
 <div class="row">
-<input id="min" type="number" inputmode="numeric" value="3" min="0"><span class="unit">分</span>
-<input id="sec" type="number" inputmode="numeric" value="0" min="0"><span class="unit">秒</span>
+<input id="min" type="number" inputmode="numeric" value="3" min="0" max="999"><span class="unit">分</span>
+<input id="sec" type="number" inputmode="numeric" value="0" min="0" max="3599"><span class="unit">秒</span>
 </div>
 </div>
 
 <div class="card">
 <label>自分のレンジのワット数</label>
 <div class="chips" id="toChips"></div>
-<div class="row"><input id="toW" type="number" inputmode="numeric" value="600"><span class="unit">W</span></div>
+<div class="row"><input id="toW" type="number" inputmode="numeric" value="600" min="1" max="10000"><span class="unit">W</span></div>
 </div>
 
 <div class="card result">
@@ -72,20 +72,22 @@ function chips(id,input){
     b.onclick=function(){$(input).value=w;calc()};box.appendChild(b);
   });
 }
+function num(id,max){var v=parseFloat($(id).value);return isFinite(v)&&v>0?Math.min(v,max):0}
 function calc(){
-  var f=+$("fromW").value,t=+$("toW").value;
-  var s=(+$("min").value||0)*60+(+$("sec").value||0);
+  var f=num("fromW",10000),t=num("toW",10000);
+  var s=num("min",999)*60+num("sec",3599);
   ["fromW","toW"].forEach(function(id){
     var chipBox=$(id==="fromW"?"fromChips":"toChips");
     Array.prototype.forEach.call(chipBox.children,function(c){c.classList.toggle("on",parseInt(c.textContent)===+$(id).value)});
   });
-  if(!f||!t||!s){$("out").textContent="--";$("sub").textContent="";$("tbl").innerHTML="";return}
+  if(!f||!t||!s){$("out").textContent="--";$("sub").textContent="";$("tbl").textContent="";return}
   var r=s*f/t;
   $("out").textContent=fmt(r);
   $("sub").textContent="計算結果："+r.toFixed(1)+"秒（"+f+"W "+fmt(s)+" → "+t+"W）";
-  var h="<tr><th>ワット数</th><th>時間</th></tr>";
-  W.concat([1500]).forEach(function(w){h+="<tr><td>"+w+"W</td><td>"+fmt(s*f/w)+"</td></tr>"});
-  $("tbl").innerHTML=h;
+  var tb=$("tbl");tb.textContent="";
+  function row(a,b,th){var tr=document.createElement("tr");[a,b].forEach(function(x){var c=document.createElement(th?"th":"td");c.textContent=x;tr.appendChild(c)});tb.appendChild(tr)}
+  row("ワット数","時間",true);
+  W.concat([1500]).forEach(function(w){row(w+"W",fmt(s*f/w))});
 }
 chips("fromChips","fromW");chips("toChips","toW");
 ["fromW","toW","min","sec"].forEach(function(id){$(id).addEventListener("input",calc)});
