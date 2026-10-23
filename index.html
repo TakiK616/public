@@ -1,97 +1,150 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>レンチン時間計算</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>アプリを選ぶ</title>
 <style>
-:root{--bg:#fff7ed;--card:#fff;--text:#2b2118;--sub:#7a6a5c;--accent:#ea580c;--line:#f0dfcf;--chip:#fde6d2;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1511;--card:#2a211b;--text:#f6ece2;--sub:#b3a090;--accent:#fb923c;--line:#3d3027;--chip:#3d2b1e}}
-:root[data-theme="dark"]{--bg:#1b1511;--card:#2a211b;--text:#f6ece2;--sub:#b3a090;--accent:#fb923c;--line:#3d3027;--chip:#3d2b1e}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;padding:16px;max-width:480px;margin:0 auto}
-h1{font-size:20px;margin:8px 0 16px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
-label{display:block;font-size:13px;color:var(--sub);margin-bottom:8px}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
-.chip{border:0;background:var(--chip);color:var(--text);padding:10px 14px;border-radius:999px;font-size:15px}
-.chip.on{background:var(--accent);color:#fff}
-.row{display:flex;align-items:center;gap:8px}
-input{width:100%;font-size:20px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);text-align:center}
-.unit{color:var(--sub);white-space:nowrap}
-.result{text-align:center}
-.big{font-size:44px;font-weight:700;color:var(--accent);margin:4px 0}
-.small{color:var(--sub);font-size:13px}
-table{width:100%;border-collapse:collapse;font-size:15px}
-td,th{padding:8px 4px;border-bottom:1px solid var(--line);text-align:center}
-th{color:var(--sub);font-weight:500;font-size:13px}
-.wrap{overflow-x:auto}
+  :root {
+    --bg: #f3f5f7;
+    --surface: #ffffff;
+    --text: #1c2630;
+    --muted: #5d6b79;
+    --line: #d9e0e6;
+    --accent: #0b7a75;
+    --accent-bg: #e3f3f2;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12181e;
+      --surface: #1b232b;
+      --text: #e8edf1;
+      --muted: #9aa8b5;
+      --line: #2c3742;
+      --accent: #4fd1c5;
+      --accent-bg: #16302f;
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", system-ui, sans-serif;
+    line-height: 1.6;
+    padding: 32px 16px 64px;
+  }
+  main { max-width: 640px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 20px; font-size: .95rem; }
+  input[type="search"] {
+    width: 100%;
+    padding: 12px 14px;
+    font: inherit;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin-bottom: 16px;
+  }
+  input[type="search"]:focus-visible,
+  a.item:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  a.item {
+    display: block;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: inherit;
+    text-decoration: none;
+  }
+  a.item:hover { border-color: var(--accent); background: var(--accent-bg); }
+  .name { font-weight: 700; }
+  .desc { color: var(--muted); font-size: .9rem; }
+  .host { color: var(--accent); font-size: .8rem; word-break: break-all; }
+  .empty { color: var(--muted); padding: 16px 0; }
 </style>
 </head>
 <body>
-<h1>🍱 レンチン時間計算</h1>
-
-<div class="card">
-<label>食品の袋に書いてあるワット数</label>
-<div class="chips" id="fromChips"></div>
-<div class="row"><input id="fromW" type="number" inputmode="numeric" value="500" min="1" max="10000"><span class="unit">W</span></div>
-<label style="margin-top:14px">書いてある加熱時間</label>
-<div class="row">
-<input id="min" type="number" inputmode="numeric" value="3" min="0" max="999"><span class="unit">分</span>
-<input id="sec" type="number" inputmode="numeric" value="0" min="0" max="3599"><span class="unit">秒</span>
-</div>
-</div>
-
-<div class="card">
-<label>自分のレンジのワット数</label>
-<div class="chips" id="toChips"></div>
-<div class="row"><input id="toW" type="number" inputmode="numeric" value="600" min="1" max="10000"><span class="unit">W</span></div>
-</div>
-
-<div class="card result">
-<div class="small">加熱時間の目安</div>
-<div class="big" id="out">--</div>
-<div class="small" id="sub"></div>
-</div>
-
-<div class="card">
-<label>ワット数ごとの早見表</label>
-<div class="wrap"><table id="tbl"></table></div>
-</div>
+<main>
+  <h1>アプリを選ぶ</h1>
+  <p class="sub">開きたいアプリをタップしてください。</p>
+  <input type="search" id="q" placeholder="名前で絞り込み" aria-label="名前で絞り込み" autocomplete="off">
+  <ul id="list"></ul>
+  <p class="empty" id="empty" hidden>見つかりませんでした。</p>
+</main>
 
 <script>
-var W=[500,600,700,800,1000];
-function $(id){return document.getElementById(id)}
-function fmt(s){s=Math.round(s);var m=Math.floor(s/60),r=s%60;return (m?m+"分":"")+(r||!m?r+"秒":"")}
-function chips(id,input){
-  var box=$(id);
-  W.forEach(function(w){
-    var b=document.createElement("button");b.className="chip";b.textContent=w+"W";
-    b.onclick=function(){$(input).value=w;calc()};box.appendChild(b);
-  });
-}
-function num(id,max){var v=parseFloat($(id).value);return isFinite(v)&&v>0?Math.min(v,max):0}
-function calc(){
-  var f=num("fromW",10000),t=num("toW",10000);
-  var s=num("min",999)*60+num("sec",3599);
-  ["fromW","toW"].forEach(function(id){
-    var chipBox=$(id==="fromW"?"fromChips":"toChips");
-    Array.prototype.forEach.call(chipBox.children,function(c){c.classList.toggle("on",parseInt(c.textContent)===+$(id).value)});
-  });
-  if(!f||!t||!s){$("out").textContent="--";$("sub").textContent="";$("tbl").textContent="";return}
-  var r=s*f/t;
-  $("out").textContent=fmt(r);
-  $("sub").textContent="計算結果："+r.toFixed(1)+"秒（"+f+"W "+fmt(s)+" → "+t+"W）";
-  var tb=$("tbl");tb.textContent="";
-  function row(a,b,th){var tr=document.createElement("tr");[a,b].forEach(function(x){var c=document.createElement(th?"th":"td");c.textContent=x;tr.appendChild(c)});tb.appendChild(tr)}
-  row("ワット数","時間",true);
-  W.concat([1500]).forEach(function(w){row(w+"W",fmt(s*f/w))});
-}
-chips("fromChips","fromW");chips("toChips","toW");
-["fromW","toW","min","sec"].forEach(function(id){$(id).addEventListener("input",calc)});
-calc();
+/* ============================================================
+   ここにURLを追加するだけ！
+   1行コピーして、name / url / desc を書き換えてください。
+   - name: 表示名（省略するとURLのドメイン名を表示）
+   - url : https:// から始まるURL（必須）
+   - desc: ひとこと説明（省略可）
+   ============================================================ */
+const APPS = [
+  { name: "電子レンジ時間計算アプリ", url: "https://takik616.github.io/public/microe-wave/", desc: "記載してるワット数が対応してない？ これは、あなたの家の電子レンジでのレンチン時間がすぐわかる！" },
+  { name: "答え合わせアプリ", url: "https://takik616.github.io/public/maru-batu/", desc: "ドリルなどに直接答えを書き込みたくないときにこれを使ってね！" },
+  // { name: "", url: "https://example.com/", desc: "" },
+];
+/* ============================================================ */
+
+(function () {
+  var list = document.getElementById("list");
+  var empty = document.getElementById("empty");
+  var q = document.getElementById("q");
+
+  // http / https 以外（javascript: など）は表示しない
+  function parse(u) {
+    try {
+      var x = new URL(u, location.href);
+      return (x.protocol === "https:" || x.protocol === "http:") ? x : null;
+    } catch (e) { return null; }
+  }
+
+  var items = APPS.map(function (a) {
+    var u = parse(a.url);
+    if (!u) return null;
+    return {
+      name: a.name || u.hostname,
+      desc: a.desc || "",
+      href: u.href,
+      host: u.host + (u.pathname !== "/" ? u.pathname : "")
+    };
+  }).filter(Boolean);
+
+  function render(filter) {
+    list.textContent = "";
+    var f = (filter || "").trim().toLowerCase();
+    var shown = items.filter(function (i) {
+      return !f || (i.name + " " + i.desc + " " + i.host).toLowerCase().indexOf(f) !== -1;
+    });
+    shown.forEach(function (i) {
+      var li = document.createElement("li");
+      var a = document.createElement("a");
+      a.className = "item";
+      a.href = i.href;
+      a.rel = "noopener noreferrer";
+      var n = document.createElement("div"); n.className = "name"; n.textContent = i.name;
+      a.appendChild(n);
+      if (i.desc) {
+        var d = document.createElement("div"); d.className = "desc"; d.textContent = i.desc;
+        a.appendChild(d);
+      }
+      var h = document.createElement("div"); h.className = "host"; h.textContent = i.host;
+      a.appendChild(h);
+      li.appendChild(a);
+      list.appendChild(li);
+    });
+    empty.hidden = shown.length > 0;
+  }
+
+  q.addEventListener("input", function () { render(q.value); });
+  render("");
+})();
 </script>
 </body>
 </html>
